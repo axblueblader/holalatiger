@@ -1,92 +1,56 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
-	"net/http/httptest"
-	"net/url"
-	"strconv"
-	"testing"
 )
 
-func TestGetBirdsHandler(t *testing.T) {
-
-	birds = []Bird{
-		{"sparrow", "A small harmless bird"},
-	}
-
-	req, err := http.NewRequest("GET", "", nil)
-
-	if err != nil {
-		t.Fatal(err)
-	}
-	recorder := httptest.NewRecorder()
-
-	hf := http.HandlerFunc(getBirdHandler)
-
-	hf.ServeHTTP(recorder, req)
-
-	if status := recorder.Code; status != http.StatusOK {
-		t.Errorf("handler returned wrong status code: got %v want %v",
-			status, http.StatusOK)
-	}
-
-	expected := Bird{"sparrow", "A small harmless bird"}
-	b := []Bird{}
-	err = json.NewDecoder(recorder.Body).Decode(&b)
-
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	actual := b[0]
-
-	if actual != expected {
-		t.Errorf("handler returned unexpected body: got %v want %v", actual, expected)
-	}
-}
-func TestCreateBirdsHandler(t *testing.T) {
-
-	birds = []Bird{
-		{"sparrow", "A small harmless bird"},
-	}
-
-	form := newCreateBirdForm()
-	req, err := http.NewRequest("POST", "", bytes.NewBufferString(form.Encode()))
-
-	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Add("Content-Length", strconv.Itoa(len(form.Encode())))
-	if err != nil {
-		t.Fatal(err)
-	}
-	recorder := httptest.NewRecorder()
-
-	hf := http.HandlerFunc(createBirdHandler)
-
-	hf.ServeHTTP(recorder, req)
-
-	if status := recorder.Code; status != http.StatusFound {
-		t.Errorf("handler returned wrong status code: got %v want %v",
-			status, http.StatusOK)
-	}
-
-	expected := Bird{"eagle", "A bird of prey"}
-
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	actual := birds[1]
-
-	if actual != expected {
-		t.Errorf("handler returned unexpected body: got %v want %v", actual, expected)
-	}
+type Bird struct {
+	Species     string `json:"species"`
+	Description string `json:"description"`
 }
 
-func newCreateBirdForm() *url.Values {
-	form := url.Values{}
-	form.Set("species", "eagle")
-	form.Set("description", "A bird of prey")
-	return &form
+var birds []Bird
+
+func getBirdHandler(w http.ResponseWriter, r *http.Request) {
+	//Convert the "birds" variable to json
+	birdListBytes, err := json.Marshal(birds)
+
+	// If there is an error, print it to the console, and return a server
+	// error response to the user
+	if err != nil {
+		fmt.Println(fmt.Errorf("Error: %v", err))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	// If all goes well, write the JSON list of birds to the response
+	w.Write(birdListBytes)
+}
+
+func createBirdHandler(w http.ResponseWriter, r *http.Request) {
+	// Create a new instance of Bird
+	bird := Bird{}
+
+	// We send all our data as HTML form data
+	// the `ParseForm` method of the request, parses the
+	// form values
+	err := r.ParseForm()
+
+	// In case of any error, we respond with an error to the user
+	if err != nil {
+		fmt.Println(fmt.Errorf("Error: %v", err))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	// Get the information about the bird from the form info
+	bird.Species = r.Form.Get("species")
+	bird.Description = r.Form.Get("description")
+
+	// Append our existing list of birds with a new entry
+	birds = append(birds, bird)
+
+	//Finally, we redirect the user to the original HTMl page (located at `/assets/`)
+	http.Redirect(w, r, "/assets/", http.StatusFound)
 }
