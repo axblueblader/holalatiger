@@ -1,0 +1,55 @@
+# Site Info
+title:              "holalatiger's mad lab"
+description:        "Write code"
+author_name:        "holalatiger"
+logo_url:           https://avatars2.githubusercontent.com/u/55516102?v=4 # Get it from GitHub API: https://api.github.com/users/<username>
+
+# Author Info
+author_name:        "holalatiger"
+author_email:       holalatiger@gmail.com
+twitter_username:   holalatiger
+github_username:    holalatiger
+
+# Google APIs
+# google_verify:      
+google_analytics:   
+
+# Site Settings
+url:                https://holalatiger.github.io/holalatiger/ # main url
+baseurl:            /
+permalink:          /:title # Post permalink
+timezone:           Asia/Kuala_Lumpur # https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+mathjax:            true  # enables support for mathjax - set to 'false' to disable
+
+# Site Build
+highlighter:        rouge
+markdown:           kramdown
+kramdown:
+    input:          GFM
+sass:
+    style:          :compressed
+
+# Other Params
+include:            [ "robots.txt" ]
+exclude:            [ "LICENSE", "README.md", "CNAME", "vendor", "Gemfile", "script" ]
+plugins:
+  - jekyll-sitemap
+
+
+
+defaults:
+  -
+    scope:
+      path:         ""
+    values:
+      layout:       "null"
+  -
+    scope:
+      type:         "pages"
+    values:
+      layout:       "page"
+  -
+    scope:
+      type:         "posts"
+    values:
+      layout:       "post"
